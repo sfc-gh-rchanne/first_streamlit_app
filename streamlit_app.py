@@ -27,20 +27,24 @@ fruits_to_show = my_fruit_list.loc[fruits_selected]
 # Display the table on the page.
 streamlit.dataframe(fruits_to_show)
 #-----------------------------------------------------------
+
 streamlit.header("Fruityvice Fruit Advice!")
 # Add a filter input
-fruit_choice = streamlit.text_input('What fruit would you like information about?','Kiwi')
+# fruit_choice = streamlit.text_input('What fruit would you like information about?','Kiwi')
+# remove static filter from above
+try:
+  fruit_choice = streamlit.text_input('What fruit would you like information about?')
+  if not fruit_choice:
+    streamlit.error("Please select a fruit to get information")
+  else:
+    fruityvice_response = requests.get("https://fruityvice.com/api/fruit/" + fruit_choice)
+    fruityvice_normalized = pandas.json_normalize(fruityvice_response.json()) # Convert the json format data to tabular by normalizing it
+    streamlit.dataframe(fruityvice_normalized) # Write the tabular data
+except URLError as e:
+  streamlit.error()
+
 streamlit.write('The user entered ', fruit_choice)
-
-fruityvice_response = requests.get("https://fruityvice.com/api/fruit/" + fruit_choice)
-
 # streamlit.text(fruityvice_response.json()) # json format data write
-
-# Convert the json format data to tabular by normalizing it
-fruityvice_normalized = pandas.json_normalize(fruityvice_response.json())
-# Write the tabular data
-streamlit.dataframe(fruityvice_normalized)
-
 streamlit.stop()
 #------------------ Connect to Snowflake -----------------------------------------
 my_cnx = snowflake.connector.connect(**streamlit.secrets["snowflake"])
